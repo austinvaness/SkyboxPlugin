@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using VRage.FileSystem;
 using VRage.Game;
 using VRage.ObjectBuilders;
@@ -30,11 +31,11 @@ namespace avaness.SkyboxPlugin
         {
             string workshop = Path.GetFullPath(@"..\..\..\workshop\content\244850\");
 
-            foreach (ulong id in SteamAPI.GetSubscribedWorkshopItems())
+            Parallel.ForEach(SteamAPI.GetSubscribedWorkshopItems(), (ulong id) =>
             {
                 string modPath = Path.Combine(workshop, id.ToString());
                 if (!Directory.Exists(modPath))
-                    continue;
+                    return;
 
                 if (Directory.Exists(Path.Combine(modPath, "Data")))
                 {
@@ -47,7 +48,7 @@ namespace avaness.SkyboxPlugin
                     if (legacyFile != null && TryGetLegacyFileDefinition(legacyFile, out MyObjectBuilder_EnvironmentDefinition definition))
                         skyboxes[id] = new Skybox(new WorkshopInfo(id, legacyFile), definition);
                 }
-            }
+            });
 
             SteamAPI.GetItemDetails(skyboxes.Keys, OnItemDetailsFound);
         }
